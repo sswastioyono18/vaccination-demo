@@ -12,3 +12,15 @@ services:
       - ./rabbitmq/data/:/var/lib/rabbitmq
       - ./rabbitmq/log/:/var/log/rabbitmq
     restart: always
+
+  postgres:
+    image: postgres:9.6
+    container_name: postgres
+    environment:
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: pass
+    restart: always
+    volumes:
+      - "./docker/init.sql:/docker-entrypoint-initdb.d/init.sql"
+    ports:
+      - 5432:5432

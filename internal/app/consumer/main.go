@@ -1,6 +1,8 @@
 package main
 
 import (
+	"encoding/json"
+	"github.com/sswastioyono18/vaccination-demo/internal/app/domain/resident"
 	"github.com/streadway/amqp"
 	"log"
 )
@@ -24,9 +26,26 @@ func main() {
 	}
 	defer channelRabbitMQ.Close()
 
+	q, err := channelRabbitMQ.QueueDeclare(
+		"NewVaccineRegistration",    // name
+		false, // durable
+		false, // delete when unused
+		true,  // exclusive
+		false, // no-wait
+		nil,   // arguments
+	)
+
+	err = channelRabbitMQ.QueueBind(
+		q.Name, // queue name
+		"",                          // routing key
+		"ResidentVaccination", // exchange
+		false,
+		nil,
+	)
+
 	// Subscribing to QueueService1 for getting messages.
 	messages, err := channelRabbitMQ.Consume(
-		"NewResidentVaccination", // queue name
+		q.Name, // queue name
 		"",              // consumer
 		true,            // auto-ack
 		false,           // exclusive
@@ -49,6 +68,13 @@ func main() {
 		for message := range messages {
 			// For example, show received message in a console.
 			log.Printf(" > Received message: %s\n", message.Body)
+			var residentData resident.ResidentRegisterVaccination
+			err = json.Unmarshal(message.Body, &residentData)
+			if err != nil {
+				return
+			}
+
+			log.Println("NIK:", residentData.ResidentData.NIK)
 		}
 	}()
 

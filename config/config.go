@@ -2,61 +2,61 @@ package config
 
 import (
 	"fmt"
+	"github.com/caarlos0/env/v6"
 	"github.com/joho/godotenv"
+	"github.com/spf13/viper"
 	"os"
 	"strings"
-	"time"
-
-	"github.com/spf13/viper"
 )
 
-// Provider the config provider
-type Provider interface {
-	ConfigFileUsed() string
-	Get(key string) interface{}
-	GetBool(key string) bool
-	GetDuration(key string) time.Duration
-	GetFloat64(key string) float64
-	GetInt(key string) int
-	GetInt64(key string) int64
-	GetSizeInBytes(key string) uint
-	GetString(key string) string
-	GetStringMap(key string) map[string]interface{}
-	GetStringMapString(key string) map[string]string
-	GetStringMapStringSlice(key string) map[string][]string
-	GetStringSlice(key string) []string
-	GetTime(key string) time.Time
-	InConfig(key string) bool
-	IsSet(key string) bool
-	Set(key string, value interface{})
-	AutomaticEnv()
+type MessageQueue struct {
+	Host      string `env:"mq_host"`
+	Port      int    `env:"mq_port"`
+	User      string `env:"mq_user"`
+	Pass      string `env:"mq_pass"`
+	Queues    Queue
+	Exchanges Exchange
 }
 
-var defaultConfig *viper.Viper
-
-func init() {
-	defaultConfig = readViperConfig()
+type Queue struct {
+	NewVaccineRegistration string `env:"resident_queue"`
 }
 
-func readViperConfig() *viper.Viper {
+type Exchange struct {
+	ResidentVaccination string `env:"resident_exchange"`
+}
+
+type Database struct {
+	Host string `env:"db_host"`
+	Port int    `env:"db_port"`
+	User string `env:"db_user"`
+	Pass string `env:"db_pass"`
+	Name string `env:"db_name"`
+}
+
+type AppConfig struct {
+	MQ MessageQueue
+	DB Database
+}
+
+func NewConfig() (conf *AppConfig, err error) {
 	v := viper.New()
 
 	// handle config path for unit test
 	dirPath, err := os.Getwd()
 	if err != nil {
-		panic(fmt.Errorf("Error get working dir: %s", err))
+		panic(fmt.Errorf("error get working dir: %s", err))
 	}
 	dirPaths := strings.Split(dirPath, "/internal")
-
-	godotenv.Load(fmt.Sprintf("%s/params/.env", dirPaths[0]))
-	godotenv.Load("./config/.env")
+	godotenv.Load(fmt.Sprintf("%s/.env", dirPaths[0]))
 
 	v.AllowEmptyEnv(true)
 	v.AutomaticEnv()
-	return v
-}
 
-// Config return provider so that you can read config anywhere
-func Config() Provider {
-	return defaultConfig
+	cfg := AppConfig{}
+	if err = env.Parse(&cfg); err != nil {
+		fmt.Printf("%+v\n", err)
+	}
+
+	return &cfg,nil
 }

@@ -1,0 +1,3 @@
+CREATE USER vaccine;
+CREATE DATABASE vaccine;
+GRANT ALL PRIVILEGES ON DATABASE vaccine TO vaccine;

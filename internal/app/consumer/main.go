@@ -68,13 +68,13 @@ func main() {
 		for message := range messages {
 			// For example, show received message in a console.
 			log.Printf(" > Received message: %s\n", message.Body)
-			var residentData resident.ResidentRegisterVaccination
+			var residentData resident.Resident
 			err = json.Unmarshal(message.Body, &residentData)
 			if err != nil {
 				return
 			}
 
-			log.Println("NIK:", residentData.ResidentData.NIK)
+			log.Println("NIK:", residentData.NIK)
 		}
 	}()
 

@@ -61,18 +61,37 @@ func (rs *ResidentService) RegisterHandler(w http.ResponseWriter, r *http.Reques
 		http.Error(w, "Invalid Resident Data", 500)
 	}
 
-	residentData := &residentDomain.ResidentRegisterVaccination{
-		ResidentData: residentDomain.Resident(resident),
-		VaccinationData: residentDomain.VaccinatedInfo{
-			Attempt:          1,
-			DateOfVaccinated: time.Now(),
-			Status:           true,
-			Reason:           "",
-		},
+	residentData := &residentDomain.Resident{
+		NIK:        resident.NIK,
+		Birthplace: resident.Birthplace,
+		DoB:        resident.DoB,
+		FirstName:  resident.FirstName,
+		LastName:   resident.LastName,
 	}
 
-	byteResult , err := json.Marshal(residentData)
-	rs.queue.Publish("", byteResult)
+	vaccinationData:= &residentDomain.VaccinatedInfo{
+		NIK: resident.NIK,
+		Attempt:          1,
+		DateOfVaccinated: time.Now(),
+		Status:           true,
+		Reason:           "",
+	}
+
+	// insert to event store resident and vaccination data
+
+	residentByte, err := json.Marshal(residentData)
+	if err != nil {
+		return
+	}
+
+	rs.queue.Publish("", residentByte)
+
+	vaccinationByte, err := json.Marshal(vaccinationData)
+	if err != nil {
+		return
+	}
+
+	rs.queue.Publish("", vaccinationByte)
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)

@@ -20,12 +20,8 @@ type ResidentRegisterRequest struct {
 	LastName   string `json:"last_name" valid:"required"`
 }
 
-type ResidentRegisterVaccination struct {
-	ResidentData    Resident
-	VaccinationData VaccinatedInfo
-}
-
 type VaccinatedInfo struct {
+	NIK string
 	Attempt int
 	DateOfVaccinated time.Time
 	Status bool

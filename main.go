@@ -22,10 +22,18 @@ type spaHandler struct {
 	indexPath  string
 }
 
+func MustParams(h http.Handler, params string) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+
+		h.ServeHTTP(w, r) // all params present, proceed
+	}
+}
+
 func ResidentRoutes(residentService *services.ResidentService) *chi.Mux {
 	router := chi.NewRouter()
 	router.Get( "/check/resident/{nik}", residentService.CheckUser)
-	router.Post( "/vaccine/{nik}", residentService.RegisterHandler)
+
+	router.Post( "/vaccine/{nik}", MustParams(http.HandlerFunc(residentService.RegisterHandler), "ster"))
 	router.Put( "/vaccine/{nik}", residentService.Update)
 	router.Get("/api/health", func(w http.ResponseWriter, r *http.Request) {
 		// an example API handler

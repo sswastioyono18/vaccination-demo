@@ -22,19 +22,11 @@ type spaHandler struct {
 	indexPath  string
 }
 
-func MustParams(h http.Handler, params string) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-
-		h.ServeHTTP(w, r) // all params present, proceed
-	}
-}
-
 func ResidentRoutes(residentService *services.ResidentService) *chi.Mux {
 	router := chi.NewRouter()
-	router.Get( "/check/resident/{nik}", residentService.CheckUser)
-
-	router.Post( "/vaccine/{nik}", MustParams(http.HandlerFunc(residentService.RegisterHandler), "ster"))
-	router.Put( "/vaccine/{nik}", residentService.Update)
+	router.Get( "/resident/{nik}", residentService.GetUser)
+	router.Post( "/resident/{nik}", residentService.Register)
+	router.Post( "/vaccinate/{nik}", residentService.Vaccinate)
 	router.Get("/api/health", func(w http.ResponseWriter, r *http.Request) {
 		// an example API handler
 		json.NewEncoder(w).Encode(map[string]bool{"ok": true})
@@ -51,22 +43,25 @@ func main() {
 	}
 
 	//TODO need to be moved later to separate block of init
-	//TODO defer connection
 	messageQueueUri := fmt.Sprintf("amqp://%s:%s@%s:%d",  appConfig.MQ.User,  appConfig.MQ.Pass,  appConfig.MQ.Host,  appConfig.MQ.Port)
-	residentExchange,err  := infra.NewBrokerExchange(appConfig.MQ.Exchanges.ResidentVaccination, appConfig.MQ.Queues.NewVaccineRegistration, messageQueueUri)
+	residentExchangeRegistrationQueue, err  := infra.NewBrokerExchange(appConfig.MQ.Resident.Exchanges.ResidentVaccination, appConfig.MQ.Resident.Queues.Registration, messageQueueUri)
 	if err != nil {
 		log.Fatal("error during init mq", err)
 	}
-	defer residentExchange.Channel.Close()
+	defer residentExchangeRegistrationQueue.Channel.Close()
 
-	newResidentService, err := services.NewResidentService(services.WithRabbitMQExchange(residentExchange))
+	residentExchangeVaccinationQueue, err  := infra.NewBrokerExchange(appConfig.MQ.Resident.Exchanges.ResidentVaccination, appConfig.MQ.Resident.Queues.Vaccination, messageQueueUri)
+	if err != nil {
+		log.Fatal("error during init mq", err)
+	}
+	defer residentExchangeVaccinationQueue.Channel.Close()
+
+	newResidentService, err := services.NewResidentService(services.WithRabbitMQExchange(residentExchangeRegistrationQueue), services.WithRabbitMQExchange(residentExchangeVaccinationQueue))
 	if err != nil {
 		log.Fatal("error new resident service", err)
 	}
 
 	router := ResidentRoutes(newResidentService)
-	fs := http.FileServer(http.Dir("static"))
-	router.Handle("/static/*", http.StripPrefix("/static/", fs))
 	srv := &http.Server{
 		Handler: router,
 		Addr:    "127.0.0.1:8000",

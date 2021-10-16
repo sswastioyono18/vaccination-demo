@@ -12,12 +12,16 @@ type Resident struct {
 	LastName   string
 }
 
-type ResidentRegisterRequest struct {
+type RegistrationRequest struct {
 	NIK        string `json:"nik" valid:"required"`
 	Birthplace string `json:"birth_place" valid:"required"`
 	DoB        string `json:"birth_date" valid:"required"`
 	FirstName  string `json:"first_name" valid:"required"`
 	LastName   string `json:"last_name" valid:"required"`
+}
+
+type VaccinationRequest struct {
+	NIK string
 }
 
 type VaccinatedInfo struct {

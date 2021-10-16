@@ -2,32 +2,26 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
+	"github.com/sswastioyono18/vaccination-demo/config"
 	"github.com/sswastioyono18/vaccination-demo/internal/app/domain/resident"
-	"github.com/streadway/amqp"
+	"github.com/sswastioyono18/vaccination-demo/internal/app/infra"
 	"log"
 )
 
 func main() {
 	// Define RabbitMQ server URL.
-	amqpServerURL := "amqp://guest:guest@localhost:5672"
+	appConfig, err := config.NewConfig()
+	messageQueueUri := fmt.Sprintf("amqp://%s:%s@%s:%d",  appConfig.MQ.User,  appConfig.MQ.Pass,  appConfig.MQ.Host,  appConfig.MQ.Port)
 
-	// Create a new RabbitMQ connection.
-	connectRabbitMQ, err := amqp.Dial(amqpServerURL)
+	residentExchange,err  := infra.NewBrokerExchange(appConfig.MQ.Resident.Exchanges.ResidentVaccination, appConfig.MQ.Resident.Queues.Vaccination, messageQueueUri)
 	if err != nil {
-		panic(err)
+		log.Fatal("error during init mq", err)
 	}
-	defer connectRabbitMQ.Close()
+	defer residentExchange.Channel.Close()
 
-	// Opening a channel to our RabbitMQ instance over
-	// the connection we have already established.
-	channelRabbitMQ, err := connectRabbitMQ.Channel()
-	if err != nil {
-		panic(err)
-	}
-	defer channelRabbitMQ.Close()
-
-	q, err := channelRabbitMQ.QueueDeclare(
-		"NewVaccineRegistration",    // name
+	q, err := residentExchange.Channel.QueueDeclare(
+		residentExchange.QueueName,    // name
 		false, // durable
 		false, // delete when unused
 		true,  // exclusive
@@ -35,16 +29,16 @@ func main() {
 		nil,   // arguments
 	)
 
-	err = channelRabbitMQ.QueueBind(
-		q.Name, // queue name
-		"",                          // routing key
-		"ResidentVaccination", // exchange
+	err = residentExchange.Channel.QueueBind(
+		q.Name,                                     // queue name
+		appConfig.MQ.Resident.Routing.Vaccination, // routing key
+		residentExchange.ExchangeName,              // exchange
 		false,
 		nil,
 	)
 
 	// Subscribing to QueueService1 for getting messages.
-	messages, err := channelRabbitMQ.Consume(
+	messages, err := residentExchange.Channel.Consume(
 		q.Name, // queue name
 		"",              // consumer
 		true,            // auto-ack
@@ -68,7 +62,7 @@ func main() {
 		for message := range messages {
 			// For example, show received message in a console.
 			log.Printf(" > Received message: %s\n", message.Body)
-			var residentData resident.Resident
+			var residentData resident.VaccinationRequest
 			err = json.Unmarshal(message.Body, &residentData)
 			if err != nil {
 				return

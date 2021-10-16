@@ -54,12 +54,12 @@ func NewBrokerExchange(exchange, queue , URIConnection string) (MessageBroker, e
 
 	err = channelRabbitMQ.ExchangeDeclare(
 		exchange, // name
-		"fanout",                    // type
-		true,                        // durable
-		false,                       // auto-deleted
-		false,                       // internal
-		false,                       // no-wait
-		nil,                         // arguments
+		"direct",                    // type
+		true,          // durable
+		false,         // auto-deleted
+		false,         // internal
+		false,         // no-wait
+		nil,           // arguments
 	)
 	if err != nil {
 		panic(err)

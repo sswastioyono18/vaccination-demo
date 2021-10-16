@@ -14,16 +14,34 @@ type MessageQueue struct {
 	Port      int    `env:"mq_port"`
 	User      string `env:"mq_user"`
 	Pass      string `env:"mq_pass"`
-	Queues    Queue
-	Exchanges Exchange
+	Resident  ResidentMQ
+	Vaccination VaccinationMQ
 }
 
-type Queue struct {
-	NewVaccineRegistration string `env:"resident_queue"`
+type ResidentMQ struct {
+	Queues    ResidentQueue
+	Exchanges ResidentExchange
+	Routing   ResidentRouting
 }
 
-type Exchange struct {
-	ResidentVaccination string `env:"resident_exchange"`
+type VaccinationMQ struct {
+	Queues    ResidentQueue
+	Exchanges ResidentExchange
+	Routing   ResidentRouting
+}
+
+type ResidentRouting struct {
+	Registration string `env:"resident_registration_routing_key"`
+	Vaccination  string `env:"resident_vaccination_routing_key"`
+}
+
+type ResidentQueue struct {
+	Registration string `env:"resident_registration_queue"`
+	Vaccination string `env:"resident_vaccination_queue"`
+}
+
+type ResidentExchange struct {
+	ResidentVaccination string `env:"resident_vaccination_exchange"`
 }
 
 type Database struct {

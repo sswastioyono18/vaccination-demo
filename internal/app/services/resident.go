@@ -6,9 +6,11 @@ import (
 	"github.com/go-chi/chi"
 	residentDomain "github.com/sswastioyono18/vaccination-demo/internal/app/domain/resident"
 	"github.com/sswastioyono18/vaccination-demo/internal/app/infra"
+	"github.com/sswastioyono18/vaccination-demo/internal/app/middleware"
 	"net/http"
-	"time"
 )
+
+var logger =  middleware.Logger
 
 // OrderConfiguration is an alias for a function that will take in a pointer to an ResidentService and modify it
 type ResidentConfiguration func(os *ResidentService) error
@@ -49,13 +51,15 @@ func WithRabbitMQExchange(rq infra.MessageBroker) ResidentConfiguration {
 
 
 // check user
-func (rs *ResidentService) CheckUser(w http.ResponseWriter, r *http.Request) {
+func (rs *ResidentService) GetUser(w http.ResponseWriter, r *http.Request) {
 	nik := chi.URLParam(r, "nik")
 	w.Write([]byte(fmt.Sprintf("NIK %s Exists!\n", nik)))
 }
 
-func (rs *ResidentService) RegisterHandler(w http.ResponseWriter, r *http.Request) {
-	var resident residentDomain.ResidentRegisterRequest
+func (rs *ResidentService) Register(w http.ResponseWriter, r *http.Request) {
+
+
+	var resident residentDomain.RegistrationRequest
 	err := json.NewDecoder(r.Body).Decode(&resident)
 	if err != nil {
 		http.Error(w, "Invalid Resident Data", 500)
@@ -69,34 +73,41 @@ func (rs *ResidentService) RegisterHandler(w http.ResponseWriter, r *http.Reques
 		LastName:   resident.LastName,
 	}
 
-	vaccinationData:= &residentDomain.VaccinatedInfo{
-		NIK: resident.NIK,
-		Attempt:          1,
-		DateOfVaccinated: time.Now(),
-		Status:           true,
-		Reason:           "",
-	}
-
-	// insert to event store resident and vaccination data
 
 	residentByte, err := json.Marshal(residentData)
 	if err != nil {
 		return
 	}
 
-	rs.queue.Publish("", residentByte)
-
-	vaccinationByte, err := json.Marshal(vaccinationData)
+	err = rs.queue.Publish("resident_registration", residentByte)
 	if err != nil {
-		return
+		logger.Error("Failed to publish")
 	}
-
-	rs.queue.Publish("", vaccinationByte)
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
 	j, _ := json.Marshal(resident)
 	w.Write(j)
+}
+
+// this function is to send nik user to vaccination queue. Consumer of vaccination queue will determine whether to update or insert
+func (rs *ResidentService) Vaccinate(w http.ResponseWriter, r *http.Request) {
+	var resident residentDomain.VaccinationRequest
+	err := json.NewDecoder(r.Body).Decode(&resident)
+	if err != nil {
+		http.Error(w, "Invalid Resident Data", 500)
+	}
+
+	vaccinationByte, err := json.Marshal(resident.NIK)
+	if err != nil {
+		return
+	}
+
+	err = rs.queue.Publish("resident_vaccination", vaccinationByte)
+	if err != nil {
+		return 
+	}
+
 }
 
 func (rs *ResidentService) Update(w http.ResponseWriter, r *http.Request) {

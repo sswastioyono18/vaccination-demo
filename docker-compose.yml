@@ -4,7 +4,7 @@ services:
   # Create service with RabbitMQ.
   rabbitmq:
     image: rabbitmq:3-management-alpine
-    container_name: message-broker
+    container_name: rabbitmq
     ports:
       - 5672:5672 # for sender and consumer connections
       - 15672:15672 # for serve RabbitMQ GUI
@@ -23,7 +23,7 @@ services:
     volumes:
       - "./docker/init.sql:/docker-entrypoint-initdb.d/init.sql"
     ports:
-      - 5432:5432
+      - "5432:5432"
 
   vaccination-api:
     depends_on:
@@ -31,5 +31,7 @@ services:
     build:
       context: .
       dockerfile: docker/Dockerfile
+    ports:
+      - "8000:8000"
     command: ["/bin/bash", "-c", "./api"]
     restart: always

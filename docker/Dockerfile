@@ -19,3 +19,5 @@ RUN cp /opt/$APPLICATION_NAME/.env.sample .env
 RUN sed -i 's/^mq_host=.*$/mq_host=rabbitmq/' .env
 RUN sed -i 's/^db_host=.*$/db_host=postgres/' .env
 RUN sed -i 's/^db_host=.*$/db_host=postgres/' .env
+
+EXPOSE 8000

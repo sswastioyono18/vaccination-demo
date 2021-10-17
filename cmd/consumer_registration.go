@@ -6,13 +6,19 @@ import (
 	"github.com/sswastioyono18/vaccination-demo/config"
 	"github.com/sswastioyono18/vaccination-demo/internal/app/domain/resident"
 	"github.com/sswastioyono18/vaccination-demo/internal/app/infra"
+	zlog "github.com/sswastioyono18/vaccination-demo/internal/app/middleware"
+	"go.uber.org/zap"
 	"log"
 )
 
+
+
 func main() {
 	// Define RabbitMQ server URL.
+	zlog.NewLogger("PROD")
+	zlogger := zlog.Logger
 	appConfig, err := config.NewConfig()
-	messageQueueUri := fmt.Sprintf("amqp://%s:%s@%s:%d",  appConfig.MQ.User,  appConfig.MQ.Pass,  appConfig.MQ.Host,  appConfig.MQ.Port)
+	messageQueueUri := fmt.Sprintf("amqp://%s:%s@%s",  appConfig.MQ.User,  appConfig.MQ.Pass,  appConfig.MQ.Host)
 
 	residentExchange,err  := infra.NewBrokerExchange(appConfig.MQ.Resident.Exchanges.ResidentVaccination, appConfig.MQ.Resident.Queues.Registration, messageQueueUri)
 	if err != nil {
@@ -41,7 +47,7 @@ func main() {
 	messages, err := residentExchange.Channel.Consume(
 		q.Name, // queue name
 		"",              // consumer
-		true,            // auto-ack
+		false,            // auto-ack
 		false,           // exclusive
 		false,           // no local
 		false,           // no wait
@@ -52,8 +58,8 @@ func main() {
 	}
 
 	// Build a welcome message.
-	log.Println("Successfully connected to RabbitMQ")
-	log.Println("Waiting for messages")
+	zlogger.Info("Successfully connected to RabbitMQ")
+	zlogger.Info("Waiting for messages")
 
 	// Make a channel to receive messages into infinite loop.
 	forever := make(chan bool)
@@ -61,7 +67,7 @@ func main() {
 	go func() {
 		for message := range messages {
 			// For example, show received message in a console.
-			log.Printf(" > Received message: %s\n", message.Body)
+			zlogger.Info(" > Received message: %s\n", zap.String("Body: ", string(message.Body)))
 			var residentData resident.Resident
 			err = json.Unmarshal(message.Body, &residentData)
 			if err != nil {
@@ -69,6 +75,11 @@ func main() {
 			}
 
 			log.Println("NIK:", residentData.NIK)
+			if err = message.Ack(false); err != nil {
+				zlogger.Error("error", zap.Error(err))
+			} else {
+				zlogger.Info("acked message")
+			}
 		}
 	}()
 

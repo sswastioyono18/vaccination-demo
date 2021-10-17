@@ -54,3 +54,12 @@ services:
       dockerfile: docker/Dockerfile
     command: [ "/bin/bash", "-c", "./consumer_vaccination" ]
     restart: always
+
+  vaccination-kafka:
+    depends_on:
+      - rabbitmq
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    command: [ "/bin/bash", "-c", "./kafka" ]
+    restart: always

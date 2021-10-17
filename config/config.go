@@ -11,7 +11,6 @@ import (
 
 type MessageQueue struct {
 	Host      string `env:"mq_host"`
-	Port      int    `env:"mq_port"`
 	User      string `env:"mq_user"`
 	Pass      string `env:"mq_pass"`
 	Resident  ResidentMQ

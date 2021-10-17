@@ -43,7 +43,7 @@ func main() {
 	}
 
 	//TODO need to be moved later to separate block of init
-	messageQueueUri := fmt.Sprintf("amqp://%s:%s@%s:%d",  appConfig.MQ.User,  appConfig.MQ.Pass,  appConfig.MQ.Host,  appConfig.MQ.Port)
+	messageQueueUri := fmt.Sprintf("amqp://%s:%s@%s",  appConfig.MQ.User,  appConfig.MQ.Pass,  appConfig.MQ.Host)
 	residentExchangeRegistrationQueue, err  := infra.NewBrokerExchange(appConfig.MQ.Resident.Exchanges.ResidentVaccination, appConfig.MQ.Resident.Queues.Registration, messageQueueUri)
 	if err != nil {
 		log.Fatal("error during init mq", err)

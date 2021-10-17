@@ -1,4 +1,4 @@
-package services
+package resident
 
 import (
 	"encoding/json"
@@ -7,6 +7,7 @@ import (
 	residentDomain "github.com/sswastioyono18/vaccination-demo/internal/app/domain/resident"
 	"github.com/sswastioyono18/vaccination-demo/internal/app/infra"
 	"github.com/sswastioyono18/vaccination-demo/internal/app/middleware"
+	"go.uber.org/zap"
 	"net/http"
 )
 
@@ -62,6 +63,7 @@ func (rs *ResidentService) Register(w http.ResponseWriter, r *http.Request) {
 	var resident residentDomain.RegistrationRequest
 	err := json.NewDecoder(r.Body).Decode(&resident)
 	if err != nil {
+		logger.Error("Invalid Resident Data", zap.Error(err))
 		http.Error(w, "Invalid Resident Data", 500)
 	}
 

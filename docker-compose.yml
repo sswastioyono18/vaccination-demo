@@ -35,3 +35,22 @@ services:
       - "8000:8000"
     command: ["/bin/bash", "-c", "./api"]
     restart: always
+
+
+  vaccination-register:
+    depends_on:
+      - rabbitmq
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    command: [ "/bin/bash", "-c", "./consumer_registration" ]
+    restart: always
+
+  vaccination-vaccine:
+    depends_on:
+      - rabbitmq
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    command: [ "/bin/bash", "-c", "./consumer_vaccination" ]
+    restart: always

@@ -7,26 +7,26 @@ import (
 	"github.com/sswastioyono18/vaccination-demo/config"
 	"github.com/sswastioyono18/vaccination-demo/internal/app/infra"
 	zlog "github.com/sswastioyono18/vaccination-demo/internal/app/middleware"
-	"github.com/sswastioyono18/vaccination-demo/internal/app/services"
+	"github.com/sswastioyono18/vaccination-demo/internal/app/services/resident"
+	"github.com/sswastioyono18/vaccination-demo/internal/app/services/vaccine"
+	"go.uber.org/zap"
 	"log"
 	"net/http"
 	"time"
 )
 
-// spaHandler implements the http.Handler interface, so we can use it
-// to respond to HTTP requests. The path to the static directory and
-// path to the index file within that static directory are used to
-// serve the SPA in the given static directory.
-type spaHandler struct {
-	staticPath string
-	indexPath  string
-}
-
-func ResidentRoutes(residentService *services.ResidentService) *chi.Mux {
-	router := chi.NewRouter()
+func residentRoutes(router *chi.Mux, residentService *resident.ResidentService) *chi.Mux {
 	router.Get( "/resident/{nik}", residentService.GetUser)
 	router.Post( "/resident/{nik}", residentService.Register)
-	router.Post( "/vaccinate/{nik}", residentService.Vaccinate)
+	return router
+}
+
+func vaccineRoutes(router *chi.Mux, vaccineService *vaccine.VaccineService) *chi.Mux {
+	router.Post( "/vaccinate/{nik}", vaccineService.Vaccinate)
+	return router
+}
+
+func healthRoutes(router *chi.Mux) *chi.Mux {
 	router.Get("/api/health", func(w http.ResponseWriter, r *http.Request) {
 		// an example API handler
 		json.NewEncoder(w).Encode(map[string]bool{"ok": true})
@@ -56,12 +56,21 @@ func main() {
 	}
 	defer residentExchangeVaccinationQueue.Channel.Close()
 
-	newResidentService, err := services.NewResidentService(services.WithRabbitMQExchange(residentExchangeRegistrationQueue), services.WithRabbitMQExchange(residentExchangeVaccinationQueue))
+	newResidentService, err := resident.NewResidentService(resident.WithRabbitMQExchange(residentExchangeRegistrationQueue))
 	if err != nil {
-		log.Fatal("error new resident service", err)
+		zlogger.Fatal("error new resident service", zap.Error(err))
 	}
 
-	router := ResidentRoutes(newResidentService)
+	newVaccineService, err := vaccine.NewVaccineService(vaccine.WithRabbitMQExchange(residentExchangeVaccinationQueue))
+	if err != nil {
+		zlogger.Fatal("error new vaccine service", zap.Error(err))
+	}
+
+	router := chi.NewRouter()
+	router = residentRoutes(router, newResidentService)
+	router = vaccineRoutes(router, newVaccineService)
+	router = healthRoutes(router)
+
 	srv := &http.Server{
 		Handler: router,
 		Addr:    "0.0.0.0:8000",

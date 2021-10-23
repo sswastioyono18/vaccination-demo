@@ -15,6 +15,7 @@ type MessageBroker struct {
 func (r MessageBroker) Publish(routingKey string, message []byte) (err error) {
 	// Create a message to publish.
 	messageBody := amqp.Publishing{
+		DeliveryMode: amqp.Persistent,
 		ContentType: "application/json",
 		Body:        message,
 	}

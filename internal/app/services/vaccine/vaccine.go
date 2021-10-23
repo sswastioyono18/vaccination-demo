@@ -15,7 +15,7 @@ type VaccineConfiguration func(os *VaccineService) error
 
 // VaccineService is a implementation of the VaccineService
 type VaccineService struct {
-	residents residentDomain.ResidentRepository
+	residents middleware.ResidentRepository
 	queue     infra.MessageBroker
 }
 

@@ -4,9 +4,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/go-chi/chi"
+	"github.com/go-gorp/gorp"
 	"github.com/sswastioyono18/vaccination-demo/config"
 	"github.com/sswastioyono18/vaccination-demo/internal/app/infra"
-	zlog "github.com/sswastioyono18/vaccination-demo/internal/app/middleware"
+	mdlware "github.com/sswastioyono18/vaccination-demo/internal/app/middleware"
 	"github.com/sswastioyono18/vaccination-demo/internal/app/services/resident"
 	"github.com/sswastioyono18/vaccination-demo/internal/app/services/vaccine"
 	"go.uber.org/zap"
@@ -35,8 +36,8 @@ func healthRoutes(router *chi.Mux) *chi.Mux {
 }
 
 func main() {
-	zlog.NewLogger("PROD")
-	zlogger := zlog.Logger
+	mdlware.NewLogger("PROD")
+	zlogger := mdlware.Logger
 	appConfig, err := config.NewConfig()
 	if err != nil {
 		log.Fatal("error during config init")
@@ -56,7 +57,14 @@ func main() {
 	}
 	defer residentExchangeVaccinationQueue.Channel.Close()
 
-	newResidentService, err := resident.NewResidentService(resident.WithRabbitMQExchange(residentExchangeRegistrationQueue))
+	var dbPostgre *gorp.DbMap
+	dbPostgre, err = infra.NewPostgreDatabase(appConfig)
+	if err != nil {
+		return
+	}
+
+	newResidentRepo := mdlware.NewResidentRepository(*dbPostgre)
+	newResidentService, err := resident.NewResidentService(resident.WithRabbitMQExchange(residentExchangeRegistrationQueue), resident.WithResidentRepository(newResidentRepo))
 	if err != nil {
 		zlogger.Fatal("error new resident service", zap.Error(err))
 	}

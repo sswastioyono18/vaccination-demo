@@ -18,7 +18,7 @@ type ResidentConfiguration func(os *ResidentService) error
 
 // ResidentService is a implementation of the ResidentService
 type ResidentService struct {
-	residents residentDomain.ResidentRepository
+	residents middleware.ResidentRepository
 	queue     infra.MessageBroker
 }
 
@@ -36,7 +36,7 @@ func NewResidentService(cfgs ...ResidentConfiguration) (rs *ResidentService, err
 	return
 }
 
-func WithResidentRepository(cr residentDomain.ResidentRepository) ResidentConfiguration {
+func WithResidentRepository(cr middleware.ResidentRepository) ResidentConfiguration {
 	return func(os *ResidentService) error {
 		os.residents = cr
 		return nil

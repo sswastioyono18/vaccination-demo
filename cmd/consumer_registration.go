@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/sswastioyono18/vaccination-demo/config"
-	"github.com/sswastioyono18/vaccination-demo/internal/app/domain/resident"
+	residentDomain "github.com/sswastioyono18/vaccination-demo/internal/app/domain/resident"
 	"github.com/sswastioyono18/vaccination-demo/internal/app/infra"
 	zlog "github.com/sswastioyono18/vaccination-demo/internal/app/middleware"
 	"go.uber.org/zap"
@@ -26,13 +26,17 @@ func main() {
 	}
 	defer residentExchange.Channel.Close()
 
+
+	queueArgs := make(map[string]interface{})
+	queueArgs["x-queue-type"] = "quorum"
+
 	q, err := residentExchange.Channel.QueueDeclare(
-		residentExchange.QueueName,    // name
-		true, // durable
-		false, // delete when unused
-		false,  // exclusive
-		false, // no-wait
-		nil,   // arguments
+		residentExchange.QueueName, // name
+		true,                       // durable
+		false,                      // delete when unused
+		false,                      // exclusive
+		false,                      // no-wait
+		queueArgs,                  // arguments
 	)
 
 	err = residentExchange.Channel.QueueBind(
@@ -68,7 +72,7 @@ func main() {
 		for message := range messages {
 			// For example, show received message in a console.
 			zlogger.Info(" > Received message: %s\n", zap.String("Body: ", string(message.Body)))
-			var residentData resident.Resident
+			var residentData residentDomain.Resident
 			err = json.Unmarshal(message.Body, &residentData)
 			if err != nil {
 				return

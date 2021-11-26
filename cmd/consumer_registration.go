@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/sswastioyono18/vaccination-demo/config"
+	"github.com/sswastioyono18/vaccination-demo/internal/app/domain/resident"
 	"github.com/sswastioyono18/vaccination-demo/internal/app/infra"
 	zlog "github.com/sswastioyono18/vaccination-demo/internal/app/middleware"
 	"go.uber.org/zap"
@@ -67,7 +68,7 @@ func main() {
 		for message := range messages {
 			// For example, show received message in a console.
 			zlogger.Info(" > Received message: %s\n", zap.String("Body: ", string(message.Body)))
-			var residentData zlog.Resident
+			var residentData resident.Resident
 			err = json.Unmarshal(message.Body, &residentData)
 			if err != nil {
 				return

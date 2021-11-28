@@ -43,6 +43,7 @@ type IResidentExchange interface {
 }
 
 func NewBrokerExchange(exchange, queue , URIConnection string) (MessageBroker, error) {
+	log.Println("uriconnection: ",URIConnection)
 	amqConnection, err := amqp.Dial(URIConnection)
 	if err != nil {
 		panic(err)

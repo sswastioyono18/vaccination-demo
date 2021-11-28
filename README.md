@@ -9,7 +9,6 @@ Learning purpose of trying DDD with Kafka, Rabbit MQ and API in 1 repo
 - Standard go-chi for API
 
 ## How to run
-set .env file
 Run `docker compose up -d`
 
 For testing purpose, just curl this example

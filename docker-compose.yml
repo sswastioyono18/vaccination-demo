@@ -3,27 +3,13 @@ version: "3.9"
 services:
   # Create service with RabbitMQ.
   rabbitmq:
-    image: rabbitmq:3-management-alpine
-    container_name: rabbitmq
+    image: sactio1811/rabbitmq-delay-arm64
     ports:
-      - 5672:5672 # for sender and consumer connections
-      - 15672:15672 # for serve RabbitMQ GUI
-    volumes:
-      - ./rabbitmq/data/:/var/lib/rabbitmq
-      - ./rabbitmq/log/:/var/log/rabbitmq
+      - "5672:5672" # for sender and consumer connections
+      - "15672:15672" # for serve RabbitMQ GUI
     restart: always
-
-  postgres:
-    image: postgres:9.6
-    container_name: postgres
-    environment:
-      POSTGRES_USER: root
-      POSTGRES_PASSWORD: pass
-    restart: always
-    volumes:
-      - "./docker/init.sql:/docker-entrypoint-initdb.d/init.sql"
-    ports:
-      - "5432:5432"
+    networks:
+      - kb-backend
 
   vaccination-api:
     depends_on:
@@ -35,6 +21,8 @@ services:
       - "8000:8000"
     command: ["/bin/bash", "-c", "./api"]
     restart: always
+    networks:
+      - kb-backend
 
 
   vaccination-register:
@@ -45,21 +33,22 @@ services:
       dockerfile: docker/Dockerfile
     command: [ "/bin/bash", "-c", "./consumer_registration" ]
     restart: always
+    networks:
+      - kb-backend
 
-  vaccination-vaccine:
-    depends_on:
-      - rabbitmq
-    build:
-      context: .
-      dockerfile: docker/Dockerfile
-    command: [ "/bin/bash", "-c", "./consumer_vaccination" ]
-    restart: always
+#  vaccination-vaccine:
+#    depends_on:
+#      - rabbitmq
+#    build:
+#      context: .
+#      dockerfile: docker/Dockerfile
+#    command: [ "/bin/bash", "-c", "./consumer_vaccination" ]
+#    restart: always
+#    networks:
+#      - kb-backend
 
-  vaccination-kafka:
-    depends_on:
-      - rabbitmq
-    build:
-      context: .
-      dockerfile: docker/Dockerfile
-    command: [ "/bin/bash", "-c", "./kafka" ]
-    restart: always
+networks:
+  kb-backend:
+    driver: bridge
+    external: false
+    name: kb-backend

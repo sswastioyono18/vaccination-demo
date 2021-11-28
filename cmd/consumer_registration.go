@@ -71,7 +71,7 @@ func main() {
 	go func() {
 		for message := range messages {
 			// For example, show received message in a console.
-			zlogger.Info(" > Received message: %s\n", zap.String("Body: ", string(message.Body)))
+			zlogger.Info(" > Received message: \n", zap.String("Body: ", string(message.Body)))
 			var residentData residentDomain.Resident
 			err = json.Unmarshal(message.Body, &residentData)
 			if err != nil {

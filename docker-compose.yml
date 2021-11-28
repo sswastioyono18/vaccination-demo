@@ -3,7 +3,7 @@ version: "3.9"
 services:
   # Create service with RabbitMQ.
   rabbitmq:
-    image: sactio1811/rabbitmq-delay-arm64
+    image: rabbitmq:3-management-alpine
     ports:
       - "5672:5672" # for sender and consumer connections
       - "15672:15672" # for serve RabbitMQ GUI

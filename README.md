@@ -2,6 +2,8 @@
 
 
 ## Why?
+Just an idea that I had during vaccination where we need to register our id then submit it to the system which the system would register the data.
+It's really not complicated..
 
 Learning purpose of trying DDD with Kafka, Rabbit MQ and API in 1 repo
 - Kafka publisher using segmentio

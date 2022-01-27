@@ -4,7 +4,7 @@ metadata:
   name: vaccination-demo-consumer
   namespace: default
 spec:
-  replicas: 1
+  replicas: 3
   selector:
     matchLabels:
       app: vaccination-demo-consumer

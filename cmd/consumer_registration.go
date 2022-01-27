@@ -9,23 +9,21 @@ import (
 	zlog "github.com/sswastioyono18/vaccination-demo/internal/app/middleware"
 	"go.uber.org/zap"
 	"log"
+	"time"
 )
-
-
 
 func main() {
 	// Define RabbitMQ server URL.
 	zlog.NewLogger("PROD")
 	zlogger := zlog.Logger
 	appConfig, err := config.NewConfig()
-	messageQueueUri := fmt.Sprintf("amqp://%s:%s@%s",  appConfig.MQ.User,  appConfig.MQ.Pass,  appConfig.MQ.Host)
+	messageQueueUri := fmt.Sprintf("amqp://%s:%s@%s", appConfig.MQ.User, appConfig.MQ.Pass, appConfig.MQ.Host)
 
-	residentExchange,err  := infra.NewBrokerExchange(appConfig.MQ.Resident.Exchanges.ResidentVaccination, appConfig.MQ.Resident.Queues.Registration, messageQueueUri)
+	residentExchange, err := infra.NewBrokerExchange(appConfig.MQ.Resident.Exchanges.ResidentVaccination, appConfig.MQ.Resident.Queues.Registration, messageQueueUri)
 	if err != nil {
 		log.Fatal("error during init mq", err)
 	}
 	defer residentExchange.Channel.Close()
-
 
 	queueArgs := make(map[string]interface{})
 	queueArgs["x-queue-type"] = "quorum"
@@ -40,7 +38,7 @@ func main() {
 	)
 
 	err = residentExchange.Channel.QueueBind(
-		q.Name,                                     // queue name
+		q.Name, // queue name
 		appConfig.MQ.Resident.Routing.Registration, // routing key
 		residentExchange.ExchangeName,              // exchange
 		false,
@@ -50,12 +48,12 @@ func main() {
 	// Subscribing to QueueService1 for getting messages.
 	messages, err := residentExchange.Channel.Consume(
 		q.Name, // queue name
-		"",              // consumer
-		false,            // auto-ack
-		false,           // exclusive
-		false,           // no local
-		false,           // no wait
-		nil,             // arguments
+		"",     // consumer
+		false,  // auto-ack
+		false,  // exclusive
+		false,  // no local
+		false,  // no wait
+		nil,    // arguments
 	)
 	if err != nil {
 		log.Println(err)
@@ -71,6 +69,7 @@ func main() {
 	go func() {
 		for message := range messages {
 			// For example, show received message in a console.
+			time.Sleep(10 * time.Second)
 			zlogger.Info(" > Received message: \n", zap.String("Body: ", string(message.Body)))
 			var residentData residentDomain.Resident
 			err = json.Unmarshal(message.Body, &residentData)

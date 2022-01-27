@@ -1,26 +1,26 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: vaccination-demo
+  name: vaccination-demo-consumer
   namespace: default
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: vaccination-demo
+      app: vaccination-demo-consumer
   template:
     metadata:
       labels:
-        app: vaccination-demo
+        app: vaccination-demo-consumer
     spec:
       containers:
-        - image: localhost:5000/vaccination-demo
+        - image: localhost:5000/vaccination-demo-consumer
           command: [ "/bin/bash","-c" ]
           args: [ "./consumer_registration" ]
           name: consumer-registration
           volumeMounts:
-            - name: vaccination-demo-config
-              mountPath: /opt/vaccination-demo/.env
+            - name: vaccination-demo-consumer-config
+              mountPath: /opt/vaccination-demo-consumer/.env
               subPath: .env
           resources:
             limits:
@@ -30,19 +30,14 @@ spec:
               cpu: 50m
               memory: 50Mi
       volumes:
-        - name: vaccination-demo-config
+        - name: vaccination-demo-consumer-config
           configMap:
-            name: vaccination-demo-config
+            name: vaccination-demo-consumer-config
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: vaccination-demo
+  name: vaccination-demo-consumer
 spec:
   selector:
-    app: vaccination-demo
-  ports:
-    - protocol: TCP
-      name: http
-      port: 8081
-      targetPort: 8081
+    app: vaccination-demo-consumer

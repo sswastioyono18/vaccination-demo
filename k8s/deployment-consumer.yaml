@@ -22,9 +22,6 @@ spec:
             - name: vaccination-demo-config
               mountPath: /opt/vaccination-demo/.env
               subPath: .env
-          ports:
-          - containerPort: 8081
-            protocol: TCP
           resources:
             limits:
               cpu: 100m

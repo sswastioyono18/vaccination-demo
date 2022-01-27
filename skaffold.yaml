@@ -1,0 +1,15 @@
+apiVersion: skaffold/v2beta26
+kind: Config
+metadata:
+  name: vaccination-demo
+build:
+  artifacts:
+  - image: localhost:5000/vaccination-demo
+    context: .
+    docker:
+      dockerfile: docker/Dockerfile
+deploy:
+  kubectl:
+    manifests:
+    - k8s/configmap.yaml
+    - k8s/deployment.yaml

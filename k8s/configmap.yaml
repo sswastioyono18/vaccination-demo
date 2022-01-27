@@ -1,0 +1,18 @@
+apiVersion: v1
+data:
+  .env: |+
+    mq_host=localhost:5672
+    mq_user=guest
+    mq_pass=guest
+    
+    resident_vaccination_exchange="resident_xchg"
+    resident_registration_queue="new_resident_registration_queue"
+    resident_vaccination_queue="new_resident_vaccination_queue"
+    resident_registration_routing_key="resident_registration"
+    resident_vaccination_routing_key="resident_vaccination"
+
+
+kind: ConfigMap
+metadata:
+  creationTimestamp: null
+  name: vaccination-demo-config

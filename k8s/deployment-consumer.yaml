@@ -14,7 +14,7 @@ spec:
         app: vaccination-demo-consumer
     spec:
       containers:
-        - image: localhost:5000/vaccination-demo-consumer
+        - image: localhost:5000/vaccination-demo
           command: [ "/bin/bash","-c" ]
           args: [ "./consumer_registration" ]
           name: consumer-registration

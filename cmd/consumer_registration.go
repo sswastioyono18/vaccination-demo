@@ -27,7 +27,6 @@ func main() {
 
 	queueArgs := make(map[string]interface{})
 	queueArgs["x-queue-type"] = "quorum"
-	queueArgs["x-single-active-consumer"] = true
 
 	q, err := residentExchange.Channel.QueueDeclare(
 		residentExchange.QueueName, // name

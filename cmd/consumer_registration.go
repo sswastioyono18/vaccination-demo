@@ -27,6 +27,7 @@ func main() {
 
 	queueArgs := make(map[string]interface{})
 	queueArgs["x-queue-type"] = "quorum"
+	queueArgs["x-single-active-consumer"] = true
 
 	q, err := residentExchange.Channel.QueueDeclare(
 		residentExchange.QueueName, // name
@@ -38,7 +39,7 @@ func main() {
 	)
 
 	err = residentExchange.Channel.QueueBind(
-		q.Name, // queue name
+		q.Name,                                     // queue name
 		appConfig.MQ.Resident.Routing.Registration, // routing key
 		residentExchange.ExchangeName,              // exchange
 		false,

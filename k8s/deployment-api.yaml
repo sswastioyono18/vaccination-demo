@@ -23,7 +23,7 @@ spec:
               mountPath: /opt/vaccination-demo/.env
               subPath: .env
           ports:
-          - containerPort: 8081
+          - containerPort: 8000
             protocol: TCP
           resources:
             limits:
@@ -47,5 +47,5 @@ spec:
   ports:
     - protocol: TCP
       name: http
-      port: 8081
-      targetPort: 8081
+      port: 8000
+      targetPort: 8000

@@ -33,11 +33,3 @@ spec:
         - name: vaccination-demo-consumer-config
           configMap:
             name: vaccination-demo-consumer-config
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: vaccination-demo-consumer
-spec:
-  selector:
-    app: vaccination-demo-consumer

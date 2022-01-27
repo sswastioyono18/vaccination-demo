@@ -15,8 +15,8 @@ spec:
     spec:
       containers:
         - image: localhost:5000/vaccination-demo
-          imagePullPolicy: Never
-          command: ["./consumer-registration"]
+          command: [ "/bin/bash","-c" ]
+          args: [ "./consumer_registration" ]
           name: consumer-registration
           volumeMounts:
             - name: vaccination-demo-config

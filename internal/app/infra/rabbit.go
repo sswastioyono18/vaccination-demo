@@ -2,22 +2,23 @@ package infra
 
 import (
 	"fmt"
+	"github.com/isayme/go-amqp-reconnect/rabbitmq"
 	"github.com/streadway/amqp"
 	"log"
 )
 
 type MessageBroker struct {
 	ExchangeName string
-	QueueName string
-	Channel *amqp.Channel
+	QueueName    string
+	Channel      *rabbitmq.Channel
 }
 
 func (r MessageBroker) Publish(routingKey string, message []byte) (err error) {
 	// Create a message to publish.
 	messageBody := amqp.Publishing{
 		DeliveryMode: amqp.Persistent,
-		ContentType: "application/json",
-		Body:        message,
+		ContentType:  "application/json",
+		Body:         message,
 	}
 
 	// Attempt to publish a message to the routingKey.
@@ -42,9 +43,9 @@ type IResidentExchange interface {
 	Publish(queue string, message []byte) error
 }
 
-func NewBrokerExchange(exchange, queue , URIConnection string) (MessageBroker, error) {
-	log.Println("uriconnection: ",URIConnection)
-	amqConnection, err := amqp.Dial(URIConnection)
+func NewBrokerExchange(exchange, queue, URIConnection string) (MessageBroker, error) {
+	log.Println("uriconnection: ", URIConnection)
+	amqConnection, err := rabbitmq.Dial(URIConnection)
 	if err != nil {
 		panic(err)
 	}
@@ -56,12 +57,12 @@ func NewBrokerExchange(exchange, queue , URIConnection string) (MessageBroker, e
 
 	err = channelRabbitMQ.ExchangeDeclare(
 		exchange, // name
-		"direct",                    // type
-		true,          // durable
-		false,         // auto-deleted
-		false,         // internal
-		false,         // no-wait
-		nil,           // arguments
+		"direct", // type
+		true,     // durable
+		false,    // auto-deleted
+		false,    // internal
+		false,    // no-wait
+		nil,      // arguments
 	)
 	if err != nil {
 		panic(err)
@@ -73,4 +74,3 @@ func NewBrokerExchange(exchange, queue , URIConnection string) (MessageBroker, e
 		channelRabbitMQ,
 	}, nil
 }
-
